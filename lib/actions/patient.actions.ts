@@ -1,4 +1,4 @@
-"use server"
+"use server";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ID, Query } from "node-appwrite";
 import {
@@ -65,23 +65,27 @@ export const registerPatient = async ({
     let file;
 
     if (identificationDocument) {
-      const inputFile = InputFile.fromBuffer(
-        identificationDocument?.get("blobFile") as Blob,
-        identificationDocument?.get("fileName") as string
-      );
+      const inputFile =
+        identificationDocument &&
+        InputFile.fromBuffer(
+          identificationDocument?.get("blobFile") as Blob,
+          identificationDocument?.get("fileName") as string
+        );
 
       file = await storage.createFile(BUCKET_ID!, ID.unique(), inputFile);
     }
+
+    console.log(file, identificationDocument);
 
     const newPatient = await databases.createDocument(
       DATABASE_ID!,
       PATIENT_COLLECTION_ID!,
       ID.unique(),
       {
-        identificationDocument: file?.$id || null,
-        identificationDocumentUrl: `${ENDPOINT!}/storage/buckets/${BUCKET_ID}/files/${
-          file?.$id
-        }/view?project=${PROJECT_ID}`,
+        identificationDocumentId: file?.$id ? file.$id : null,
+        identificationDocumentUrl: file?.$id
+          ? `${ENDPOINT}/storage/buckets/${BUCKET_ID}/files/${file.$id}/view??project=${PROJECT_ID}`
+          : null,
         ...patient,
       }
     );
